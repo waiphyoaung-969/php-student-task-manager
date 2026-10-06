@@ -3,7 +3,8 @@
 //
 // Local development (Laragon/XAMPP):
 //   http://localhost/... or http://*.test
-//   uses local MySQL: localhost:3306 / student_task_manager / root / empty password
+//   loads config.local.php if it exists.
+//   This keeps your local password out of GitHub.
 //
 // Hosted deployment (Vercel):
 //   uses MYSQL_PUBLIC_URL or DATABASE_URL when available.
@@ -19,12 +20,28 @@ $isLocal = (
 );
 
 if ($isLocal) {
-    // Laragon / XAMPP local defaults
+    // Default Laragon / XAMPP values
     $host = '127.0.0.1';
     $port = '3306';
     $dbname = 'student_task_manager';
     $username = 'root';
     $password = '';
+
+    // Optional local-only overrides.
+    // Create config.local.php from config.local.example.php.
+    $localConfigFile = __DIR__ . '/config.local.php';
+
+    if (file_exists($localConfigFile)) {
+        $localConfig = require $localConfigFile;
+
+        if (is_array($localConfig)) {
+            $host = $localConfig['host'] ?? $host;
+            $port = $localConfig['port'] ?? $port;
+            $dbname = $localConfig['dbname'] ?? $dbname;
+            $username = $localConfig['username'] ?? $username;
+            $password = $localConfig['password'] ?? $password;
+        }
+    }
 } else {
     $databaseUrl = getenv('MYSQL_PUBLIC_URL') ?: getenv('DATABASE_URL');
 
@@ -64,8 +81,8 @@ try {
     if ($isLocal) {
         die(
             'Local database connection failed. '
-            . 'Start MySQL in Laragon, create/import the student_task_manager database, '
-            . 'and make sure the local MySQL root password is empty or update db.php.'
+            . 'Check config.local.php, start MySQL in Laragon, and make sure the '
+            . 'student_task_manager database exists.'
         );
     }
 
