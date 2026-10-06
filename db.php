@@ -1,13 +1,15 @@
 <?php
 // Database connection settings.
-$host = 'localhost';
-$dbname = 'student_task_manager';
-$username = 'root';
-$password = '';
+// Local XAMPP defaults are used when Vercel environment variables are not set.
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'student_task_manager';
+$username = getenv('DB_USER') ?: 'root';
+$password = getenv('DB_PASSWORD') ?: '';
+$port = getenv('DB_PORT') ?: '3306';
 
 try {
     $pdo = new PDO(
-        "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
+        "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4",
         $username,
         $password,
         [
@@ -17,5 +19,9 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    die('Database connection failed: ' . htmlspecialchars($e->getMessage()));
+    die(
+        'Database connection failed. '
+        . 'If this is the Vercel deployment, add DB_HOST, DB_PORT, DB_NAME, DB_USER, '
+        . 'and DB_PASSWORD in Vercel Project Settings > Environment Variables.'
+    );
 }
