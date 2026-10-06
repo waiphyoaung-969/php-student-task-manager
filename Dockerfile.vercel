@@ -1,0 +1,11 @@
+FROM php:8.3-cli
+
+# Install MySQL PDO support required by the assignment.
+RUN docker-php-ext-install pdo_mysql
+
+WORKDIR /var/www/html
+
+COPY . .
+
+# Vercel provides the PORT environment variable at runtime.
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-8080} -t /var/www/html"]
