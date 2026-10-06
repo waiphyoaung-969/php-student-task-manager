@@ -1,30 +1,52 @@
 <?php
 // Database connection settings.
-// For hosting, prefer a single Railway public MySQL URL if provided.
-// Supported env vars: MYSQL_PUBLIC_URL or DATABASE_URL.
-// Fallback: separate DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD.
-// Local XAMPP defaults are used when none are set.
+//
+// Local development (Laragon/XAMPP):
+//   http://localhost/... or http://*.test
+//   uses local MySQL: localhost:3306 / student_task_manager / root / empty password
+//
+// Hosted deployment (Vercel):
+//   uses MYSQL_PUBLIC_URL or DATABASE_URL when available.
+//   You can also use DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD.
 
-$databaseUrl = getenv('MYSQL_PUBLIC_URL') ?: getenv('DATABASE_URL');
+$httpHost = $_SERVER['HTTP_HOST'] ?? '';
+$isLocal = (
+    $httpHost === 'localhost'
+    || $httpHost === '127.0.0.1'
+    || str_starts_with($httpHost, 'localhost:')
+    || str_starts_with($httpHost, '127.0.0.1:')
+    || str_ends_with($httpHost, '.test')
+);
 
-if ($databaseUrl) {
-    $parts = parse_url($databaseUrl);
-
-    if ($parts === false || empty($parts['host']) || empty($parts['path'])) {
-        die('Database connection failed: invalid MYSQL_PUBLIC_URL / DATABASE_URL.');
-    }
-
-    $host = $parts['host'];
-    $port = $parts['port'] ?? 3306;
-    $dbname = ltrim($parts['path'], '/');
-    $username = $parts['user'] ?? '';
-    $password = $parts['pass'] ?? '';
+if ($isLocal) {
+    // Laragon / XAMPP local defaults
+    $host = '127.0.0.1';
+    $port = '3306';
+    $dbname = 'student_task_manager';
+    $username = 'root';
+    $password = '';
 } else {
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $port = getenv('DB_PORT') ?: '3306';
-    $dbname = getenv('DB_NAME') ?: 'student_task_manager';
-    $username = getenv('DB_USER') ?: 'root';
-    $password = getenv('DB_PASSWORD') ?: '';
+    $databaseUrl = getenv('MYSQL_PUBLIC_URL') ?: getenv('DATABASE_URL');
+
+    if ($databaseUrl) {
+        $parts = parse_url($databaseUrl);
+
+        if ($parts === false || empty($parts['host']) || empty($parts['path'])) {
+            die('Database connection failed: invalid MYSQL_PUBLIC_URL / DATABASE_URL.');
+        }
+
+        $host = $parts['host'];
+        $port = $parts['port'] ?? 3306;
+        $dbname = ltrim($parts['path'], '/');
+        $username = $parts['user'] ?? '';
+        $password = $parts['pass'] ?? '';
+    } else {
+        $host = getenv('DB_HOST') ?: 'localhost';
+        $port = getenv('DB_PORT') ?: '3306';
+        $dbname = getenv('DB_NAME') ?: 'student_task_manager';
+        $username = getenv('DB_USER') ?: 'root';
+        $password = getenv('DB_PASSWORD') ?: '';
+    }
 }
 
 try {
@@ -39,6 +61,14 @@ try {
         ]
     );
 } catch (PDOException $e) {
+    if ($isLocal) {
+        die(
+            'Local database connection failed. '
+            . 'Start MySQL in Laragon, create/import the student_task_manager database, '
+            . 'and make sure the local MySQL root password is empty or update db.php.'
+        );
+    }
+
     die(
         'Database connection failed. '
         . 'On Vercel, add MYSQL_PUBLIC_URL using the Railway MySQL public connection URL, '
