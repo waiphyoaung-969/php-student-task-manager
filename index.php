@@ -174,6 +174,7 @@ $flash = get_flash();
                             <td class="actions">
                                 <a class="btn btn-small btn-secondary" href="edit.php?id=<?= (int) $task['id'] ?>">Edit</a>
                                 <form method="POST" action="delete.php" onsubmit="return confirm('Delete this task?');">
+                                    <?= csrf_field() ?>
                                     <input type="hidden" name="id" value="<?= (int) $task['id'] ?>">
                                     <button class="btn btn-small btn-danger" type="submit">Delete</button>
                                 </form>
