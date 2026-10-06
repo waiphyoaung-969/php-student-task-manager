@@ -8,9 +8,23 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die('Method not allowed.');
 }
 
+if (!verify_csrf_token()) {
+    set_flash('Your session expired. Please try again.', 'error');
+    header('Location: index.php');
+    exit;
+}
+
 $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 if (!$id) {
     set_flash('Invalid task ID.', 'error');
+    header('Location: index.php');
+    exit;
+}
+
+$stmt = $pdo->prepare('SELECT id FROM tasks WHERE id = ?');
+$stmt->execute([$id]);
+if (!$stmt->fetch()) {
+    set_flash('Task not found.', 'error');
     header('Location: index.php');
     exit;
 }

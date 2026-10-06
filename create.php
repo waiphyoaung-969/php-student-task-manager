@@ -13,6 +13,12 @@ $task = [
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        set_flash('Your session expired. Please try again.', 'error');
+        header('Location: index.php');
+        exit;
+    }
+
     $task = [
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -68,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="create.php" novalidate>
+            <?= csrf_field() ?>
             <label for="title">Title *</label>
             <input id="title" type="text" name="title" maxlength="150" value="<?= e($task['title']) ?>" required>
 
