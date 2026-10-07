@@ -80,9 +80,8 @@ try {
 } catch (PDOException $e) {
     if ($isLocal) {
         die(
-            'Local database connection failed. '
-            . 'Check config.local.php, start MySQL in Laragon, and make sure the '
-            . 'student_task_manager database exists.'
+            'Local database connection failed: '
+            . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8')
         );
     }
 
